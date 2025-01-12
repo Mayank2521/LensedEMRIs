@@ -1,0 +1,8 @@
+__py*
+.ipy*
+*.pkl
+docs/
+documentation
+logs/
+pnt_Ff_lookup_table
+

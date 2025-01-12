@@ -1,0 +1,15 @@
+_build/
+_include/*.gwf
+_include/*.rst
+_include/*.hdf
+_include/*.png
+_include/*.ini
+pycbc-build/
+workflow/planning/
+workflow/pycbc-submit-dax-log.txt
+modules.rst
+pycbc.*.rst
+pycbc.rst
+conf.py
+_reuse.cache
+extra-properties.conf
