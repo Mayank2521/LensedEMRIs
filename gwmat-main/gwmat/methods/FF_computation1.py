@@ -1,4 +1,4 @@
-#!/home/mayank/miniconda3/envs/few_env/bin/python3
+#!/home/anuj.mishra/anaconda3/envs/igwn-py39/bin/python3
 
 ######################################################################################################
 ### PROGRAM TO COMPUTE FITTING FACTOR (MAX MATCH); Supports MPI Parallelisation ###
@@ -25,7 +25,7 @@ from time import time
 import func_timeout
 import random
 from copy import deepcopy
-
+from pycbc.filter.matchedfilter import match
 import gwmat
 
 
@@ -572,6 +572,102 @@ def inject_microlensed_signal(
     )
     return res_dict
 
+def inject_microlensed_signal_emri(
+    Mlz, y_lens, q, Mtot, apx="IMRPhenomXP", f_low=1e-5, f_high=None
+):
+    """
+    Initialises the setup for given microlensing and fixed emri waveform (currently).
+    Returns: label, lensed and unlensed WFs in FD and TD, direct match between UL and ML WF, and frequency spacing (df) for lensed WF.
+
+    """
+
+    # label = str(proc_ID) + '_' + wf_model + '_model_FF'+'_Mlz_' + gwmat.str_m(Mlz) + '_y_' + gwmat.str_y(y_lens) + '_Mtot_' + gwmat.str_m(Mtot) + '_q_' + gwmat.str_y(q)
+    label = (
+        "Mlz_"
+        + gwmat.general_utils.str_m(Mlz)
+        + "_y_"
+        + gwmat.general_utils.str_y(y_lens)
+        + "_Mtot_"
+        + gwmat.general_utils.str_m(Mtot)
+        + "_q_"
+        + gwmat.general_utils.str_y(q)
+    )
+
+    if Mtot > 20:  # because f_RD(Mtot=20) ~ 900 Hz
+        sample_rate = 2048
+    else:
+        sample_rate = 4096
+
+    dt = 1.0 / sample_rate
+
+    init_prms = dict(
+        f_low=f_low, f_high=f_high, sample_rate=sample_rate, approximant=apx
+    )
+
+    m1, m2 = gwmat.conversion.total_mass_and_mass_ratio_to_component_masses(Mtot, q)
+    cbc_prms = dict(
+        mass_1=m1,
+        mass_2=m2,
+        a_1=0,
+        a_2=0,
+        tilt_1=0,
+        tilt_2=0,
+        phi_12=0,
+        phi_jl=0,
+        luminosity_distance=100,
+        theta_jn=0,
+        polarization=0,
+        coa_phase=0,
+        trig_time=1242529720,
+    )
+
+    ## lensed waveform generation
+    lens_prms = dict(m_lens=Mlz, y_lens=y_lens, z_lens=0)
+    prms = {**lens_prms, **cbc_prms}
+    lwfs = gwmat.injection1.generate_gw_polarizations_hp_hc_emri(**prms)
+
+    # choosing plus polarized WF for the analysis (without loss of generality)
+    lwf_fd = lwfs["hp_FD_Lensed"].astype(np.complex128) #convert to complex128 since pycbc match supports this
+    lwf_td = lwfs["hp_TD_Lensed"].astype(np.complex128) #convert to complex128 since pycbc match supports this
+    print("lensed WF shape: ", lwf_fd.shape, lwf_td.shape)
+    ## Unlensed waveform
+    uwf_fd = lwfs["hp_FD_Unlensed"].astype(np.complex128) #convert to complex128 since pycbc match supports this
+    uwf_td = lwfs["hp_TD_Unlensed"].astype(np.complex128) #convert to complex128 since pycbc match supports this
+    print("Unlensed WF shape: ", uwf_fd.shape, uwf_td.shape)
+    df_lw = lwf_fd.delta_f  # frequency spacing for the lensed WF
+    
+    # match calculations
+    # m_td, _ = gwmat.gw_utils.compute_pycbc_match(
+    #     uwf_td, lwf_td, f_low=f_low, f_high=f_high
+    # )  # Direct Match: m(UL, ML)
+    print("f_low :",f_low,"f_high :",f_high)
+    m_fd, _ = gwmat.gw_utils.compute_pycbc_match(
+        uwf_fd, uwf_fd, psd=None, f_low=f_low, f_high=f_high
+    )
+    # m_fd_emri, _ = match(uwf_fd, lwf_fd, f_low=f_low, f_high=f_high)
+    d_match = m_fd 
+    #max(m_fd, m_td)
+    # if rank == 0:
+    #     if round(m_td, 4) == round(m_fd, 4):
+    #         print("\nmatch(uwf, lwf): {:.5f}".format(d_match))
+    #     else:
+    #         print(
+    #             "\nCAUTION: Discripency in Match Calculation\nmatch(uwf_td, lwf_td): {:.5f}".format(
+    #                 m_td
+    #             )
+    #         )
+    #         print("match(uwf_fd, lwf_fd): {:.5f}".format(m_fd))
+
+    res_dict = dict(
+        label=label,
+        lwf_fd=lwf_fd,
+        lwf_td=lwf_td,
+        uwf_fd=uwf_fd,
+        uwf_td=uwf_td,
+        df_lw=df_lw,
+        d_match=d_match,
+    )
+    return res_dict
 
 def random_gen_from_powerlaw(alpha, xmin, xmax, N=1):
     r = np.random.power(alpha, N)

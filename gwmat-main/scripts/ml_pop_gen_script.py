@@ -133,7 +133,7 @@ interp_params = dict(
     a_1=np.linspace(0, 0.99, 500),
     a_2=np.linspace(0, 0.99, 500),
     cos_tilt_1=np.linspace(-1, 1, 500),
-    cos_tilt_2=np.linspace(-1, 1, 500),
+    cos_tilt_2=np.linspace(-1, 1, 500)
     #redshift=z_model.zs    #np.concatenate((z_model.zs, high_z_arr)),
 )
 p_m1 = mass_model.p_m1(
