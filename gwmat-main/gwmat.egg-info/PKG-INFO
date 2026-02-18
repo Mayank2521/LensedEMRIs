@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: gwmat
+Version: 1.0.0
+Summary: A package for generating and analysing microlensed gravitational wave signals.
+Home-page: https://git.ligo.org/anuj.mishra/gwmat/
+Author: Anuj Mishra
+Author-email: anuj.mishra@ligo.org
+License: MIT
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Scientific/Engineering :: Physics
+Requires-Python: >=3.6
+License-File: LICENSE

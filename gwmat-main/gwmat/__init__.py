@@ -14,7 +14,7 @@ from .injection import CBCInjection
 from . import cythonized_point_lens
 from . import methods
 from . import bilby_custom_FD_source_models
-from .injection_1 import CBCInjection
+from .injection1 import CBCInjection1
 # Initialize default instances of the classes
 point_lens = PointLens()
 cosmology = Cosmology()  # Default parameters
@@ -23,6 +23,7 @@ conversion = CBCParameterConversion()
 gw_utils = GWUtils()
 general_utils = GeneralUtils()
 injection = CBCInjection()  # Default parameters
+injection1 = CBCInjection1()  # Default parameters
 
 
 # Function to configure parameters

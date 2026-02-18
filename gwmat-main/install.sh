@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## using pip
-pip install .
+pip install -e .
 rm -r ./build ./*egg-info
 
 ## using python steup.py
